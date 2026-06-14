@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.geoquiz.ui.theme.GeoQuizTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 data class Question(val text: String, val answer: Boolean)
@@ -56,17 +56,25 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GeoQuizScreen(modifier: Modifier = Modifier) {
     var currentIndex by remember { mutableIntStateOf(0) }
+    var answered by remember { mutableStateOf(false) }
+    var score by remember { mutableIntStateOf(0) }
+
+    val currentQuestion = questions[currentIndex]
+    val isLastQuestion = currentIndex == questions.lastIndex
+
+    fun handleAnswer(userAnswer: Boolean) {
+        if (answered) return
+        if (userAnswer == currentQuestion.answer) score++
+        answered = true
+    }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Текст вопроса
         Text(
-            text = questions[currentIndex].text,
+            text = currentQuestion.text,
             fontSize = 18.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(16.dp)
@@ -74,18 +82,23 @@ fun GeoQuizScreen(modifier: Modifier = Modifier) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(onClick = { }) {
-                Text("TRUE")
-            }
-            Button(onClick = { }) {
-                Text("FALSE")
+        if (!answered) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Button(onClick = { handleAnswer(true) }) { Text("TRUE") }
+                Button(onClick = { handleAnswer(false) }) { Text("FALSE") }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        if (answered && !isLastQuestion) {
+            Button(onClick = {
+                currentIndex++
+                answered = false
+            }) {
+                Text("NEXT")
+            }
+        }
     }
 }
 
